@@ -1,21 +1,14 @@
-package com.vidilin.hotel.entity;
-
-import jakarta.persistence.*;
+package com.vidilin.hotel.dto;
 
 import java.time.LocalTime;
 
-@Entity
-@Table(name = "arrival_time")
-public class ArrivalTime {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class ArrivalTimeDto {
     private LocalTime checkIn;
     private LocalTime checkOut;
 
-    public ArrivalTime(){};
+    public ArrivalTimeDto() {};
 
-    public ArrivalTime(LocalTime checkIn, LocalTime checkOut) {
+    public ArrivalTimeDto(LocalTime checkIn, LocalTime checkOut) {
         this.checkIn = checkIn;
         this.checkOut = checkOut;
     }

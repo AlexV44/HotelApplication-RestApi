@@ -1,33 +1,21 @@
-package com.vidilin.hotel.entity;
+package com.vidilin.hotel.dto;
 
-import jakarta.persistence.*;
-
-@Entity
-@Table(name = "address")
-public class Address {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class AddressDto {
     private Integer houseNumber;
     private String street;
     private String city;
     private String country;
     private String postCode;
 
-    public Address() {
+    public AddressDto() {
     }
 
-    public Address(Integer houseNumber, String street, String city, String country, String postCode) {
+    public AddressDto(Integer houseNumber, String street, String city, String country, String postCode) {
         this.houseNumber = houseNumber;
         this.street = street;
         this.city = city;
         this.country = country;
         this.postCode = postCode;
-    }
-
-    @Override
-    public String toString() {
-        return String.format("%s, %s, %s, %s", street, city, postCode, country);
     }
 
     public Integer getHouseNumber() {

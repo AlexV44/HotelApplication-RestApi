@@ -6,23 +6,44 @@ import java.util.List;
 
 @Entity
 @Table(name = "hotels")
-
 public class Hotel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(nullable = false)
     private String name;
+    @Column(nullable = false)
+    private String description;
+    @Column(nullable = false)
     private String brand;
 
-    @Embedded
-    private String address;
-    private String contacts;
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "address_id")
+    private Address address;
 
-    @Embedded
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "contacts_id")
+    private Contacts contacts;
+
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "arrival_time_id")
     private ArrivalTime arrivalTime;
+
     private List<String> amenities;
 
     public Hotel() {}
+
+    public Hotel(Long id, String name, String description, String brand, Address address, Contacts contacts, ArrivalTime arrivalTime, List<String> amenities) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.brand = brand;
+        this.address = address;
+        this.contacts = contacts;
+        this.arrivalTime = arrivalTime;
+        this.amenities = amenities;
+    }
 
     public Long getId() {
         return id;
@@ -40,6 +61,14 @@ public class Hotel {
         this.name = name;
     }
 
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
     public String getBrand() {
         return brand;
     }
@@ -48,19 +77,19 @@ public class Hotel {
         this.brand = brand;
     }
 
-    public String getAddress() {
+    public Address getAddress() {
         return address;
     }
 
-    public void setAddress(String address) {
+    public void setAddress(Address address) {
         this.address = address;
     }
 
-    public String getContacts() {
+    public Contacts getContacts() {
         return contacts;
     }
 
-    public void setContacts(String contacts) {
+    public void setContacts(Contacts contacts) {
         this.contacts = contacts;
     }
 
