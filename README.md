@@ -23,7 +23,6 @@ RESTful web service built with Spring Boot 3 for hotel catalog management, ameni
 * **Dependency Injection / IoC (Inversion of Control)** — injects `HotelService` into `HotelController` via constructor injection managed by the Spring Framework.
 * **Repository** — provides an abstraction layer for database access using JPA and Spring Data (`repository` package).
 * **Data Mapper** — converts database entities (`Hotel`) into Data Transfer Objects (`DTO`) and vice versa (`mapper` package).
-* **Test Double / Mocking** — enables isolated controller testing by replacing real service implementations with mocks (`@MockitoBean` / `@MockBean`).
 
 ---
 
