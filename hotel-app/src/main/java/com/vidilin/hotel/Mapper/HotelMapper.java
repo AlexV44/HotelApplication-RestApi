@@ -69,4 +69,41 @@ public class HotelMapper {
 
         return dto;
     }
+
+    public static Hotel mapToEntity(SaveHotelDto dto) {
+        if (dto == null) {
+            return null;
+        }
+
+        Hotel hotel = new Hotel();
+        hotel.setName(dto.getName());
+        hotel.setDescription(dto.getDescription());
+        hotel.setBrand(dto.getBrand());
+
+        if (dto.getAddress() != null) {
+            Address address = new Address();
+            address.setHouseNumber(dto.getAddress().getHouseNumber());
+            address.setStreet(dto.getAddress().getStreet());
+            address.setCity(dto.getAddress().getCity());
+            address.setCountry(dto.getAddress().getCountry());
+            address.setPostCode(dto.getAddress().getPostCode());
+            hotel.setAddress(address);
+        }
+
+        if (dto.getContacts() != null) {
+            Contacts contacts = new Contacts();
+            contacts.setPhone(dto.getContacts().getPhone());
+            contacts.setEmail(dto.getContacts().getEmail());
+            hotel.setContacts(contacts);
+        }
+
+        if (dto.getArrivalTime() != null) {
+            ArrivalTime arrivalTime = new ArrivalTime();
+            arrivalTime.setCheckIn(dto.getArrivalTime().getCheckIn());
+            arrivalTime.setCheckOut(dto.getArrivalTime().getCheckOut());
+            hotel.setArrivalTime(arrivalTime);
+        }
+
+        return hotel;
+    }
 }
