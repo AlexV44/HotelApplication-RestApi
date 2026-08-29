@@ -5,14 +5,14 @@ import com.vidilin.hotel.dto.HotelDetailDto;
 import com.vidilin.hotel.dto.HotelSummaryDto;
 import com.vidilin.hotel.dto.SaveHotelDto;
 import com.vidilin.hotel.entity.Hotel;
+import com.vidilin.hotel.exception.BadRequestException;
 import com.vidilin.hotel.repository.HotelRepository;
 import com.vidilin.hotel.repository.HotelSpecification;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.util.Streamable;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -40,7 +40,7 @@ public class HotelServiceImpl implements HotelService {
     @Override
     public HotelDetailDto getHotelById(Long id) {
         Optional<Hotel> hotel = hotelRepository.findById(id);
-        return hotel.map(HotelMapper::mapToDetailDto).orElse(null);
+        return hotel.map(HotelMapper::mapToDetailDto).orElseThrow(() -> new EntityNotFoundException("Hotel not found with id: " + id));
     }
 
     @Override
@@ -54,11 +54,10 @@ public class HotelServiceImpl implements HotelService {
     @Override
     @Transactional
     public void addAmenitiesById(Long id, List<String> amenities) {
-        Optional<Hotel> hotel = hotelRepository.findById(id);
-        hotel.ifPresent(value -> {
-                    value.getAmenities().addAll(amenities);
-                    hotelRepository.save(value);
-                });
+        Hotel hotel = hotelRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Hotel not found with id: " + id));
+
+        hotel.getAmenities().addAll(amenities);
     }
 
     @Override
@@ -79,7 +78,7 @@ public class HotelServiceImpl implements HotelService {
             case "amenities" -> group = hotels.stream()
                     .flatMap(h -> h.getAmenities().stream())
                     .collect(Collectors.groupingBy(a -> a, Collectors.counting()));
-            default -> throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid group parameter: " + param);
+            default -> throw new BadRequestException("Invalid group parameter: " + param);
         }
 
         return group;
