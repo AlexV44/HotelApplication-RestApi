@@ -13,7 +13,6 @@ public class Hotel {
 
     @Column(nullable = false)
     private String name;
-    @Column(nullable = false)
     private String description;
     @Column(nullable = false)
     private String brand;
@@ -30,6 +29,9 @@ public class Hotel {
     @JoinColumn(name = "arrival_time_id")
     private ArrivalTime arrivalTime;
 
+    @ElementCollection
+    @CollectionTable(name = "hotel_amenities", joinColumns = @JoinColumn(name = "hotel_id"))
+    @Column(name = "amenities")
     private List<String> amenities;
 
     public Hotel() {}

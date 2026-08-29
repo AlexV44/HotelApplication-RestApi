@@ -11,12 +11,14 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.util.Streamable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional(readOnly = true)
 public class HotelServiceImpl implements HotelService {
     private final HotelRepository hotelRepository;
 
@@ -42,6 +44,7 @@ public class HotelServiceImpl implements HotelService {
     }
 
     @Override
+    @Transactional
     public HotelSummaryDto saveHotel(SaveHotelDto dto) {
         Hotel hotel = HotelMapper.mapToEntity(dto);
         Hotel savedHotel = hotelRepository.save(hotel);
@@ -49,6 +52,7 @@ public class HotelServiceImpl implements HotelService {
     }
 
     @Override
+    @Transactional
     public void addAmenitiesById(Long id, List<String> amenities) {
         Optional<Hotel> hotel = hotelRepository.findById(id);
         hotel.ifPresent(value -> {

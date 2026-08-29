@@ -9,7 +9,9 @@ public class Contacts {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Column(nullable = false)
     private String phone;
+    @Column(nullable = false)
     private String email;
 
     public Contacts() {};

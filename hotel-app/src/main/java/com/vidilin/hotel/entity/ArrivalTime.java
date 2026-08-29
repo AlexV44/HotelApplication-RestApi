@@ -10,6 +10,7 @@ public class ArrivalTime {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Column(nullable = false)
     private LocalTime checkIn;
     private LocalTime checkOut;
 
