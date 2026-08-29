@@ -27,3 +27,18 @@ All endpoints are available with base path `/property-view`:
 | `POST` | `/property-view/hotels/{id}/amenities` | Adding amenities to the existing hotel | `200 OK` / `404 Not Found` |
 | `GET` | `/property-view/histogram/{param}` | Grouping hotels (`brand`, `city`, `country`, `amenities`) | `200 OK` / `400 Bad Request` |
 | `GET` | `/property-view/search` | Searching hotels by params | `200 OK` |
+
+---
+
+## 🔗 Access Links & Documentation
+
+When the application is running (default port: `8092`), the following web interfaces are accessible:
+
+* **Swagger UI (Interactive API Documentation):**  
+  [http://localhost:8092/swagger-ui.html](http://localhost:8092/swagger-ui.html)
+* **OpenAPI Specification (JSON):**  
+  [http://localhost:8092/v3/api-docs](http://localhost:8092/v3/api-docs)
+* **H2 Database Console:**  
+  [http://localhost:8092/h2-console](http://localhost:8092/h2-console)  
+  *(Connection details: `JDBC URL: jdbc:h2:mem:hoteldb`, `User Name: root`, `Password: root`)*
+  
