@@ -15,6 +15,18 @@ RESTful web service built with Spring Boot 3 for hotel catalog management, ameni
 
 ---
 
+## 🏗 Architecture & Design Patterns
+
+* **MVC (Model-View-Controller)** — Core Spring Web pattern. The `HotelController` class acts as the controller, DTOs/Entities serve as the model, and JSON responses (or Swagger UI) function as the view.
+* **Service Layer** — separates business logic into dedicated `HotelService` / `HotelServiceImpl` classes to isolate the REST controller from database operations and business rules.
+* **DTO (Data Transfer Object)** — uses transfer objects (`HotelSummaryDto`, `HotelDetailDto`, `SaveHotelDto`) to exchange data between client and server without exposing internal database entities.
+* **Dependency Injection / IoC (Inversion of Control)** — injects `HotelService` into `HotelController` via constructor injection managed by the Spring Framework.
+* **Repository** — provides an abstraction layer for database access using JPA and Spring Data (`repository` package).
+* **Data Mapper** — converts database entities (`Hotel`) into Data Transfer Objects (`DTO`) and vice versa (`mapper` package).
+* **Test Double / Mocking** — enables isolated controller testing by replacing real service implementations with mocks (`@MockitoBean` / `@MockBean`).
+
+---
+
 ## 🚀 API Endpoints
 
 All endpoints are available with base path `/property-view`:
@@ -41,6 +53,8 @@ When the application is running (default port: `8092`), the following web interf
 * **H2 Database Console:**  
   [http://localhost:8092/h2-console](http://localhost:8092/h2-console)  
   *(Connection details: `JDBC URL: jdbc:h2:mem:hoteldb`, `User Name: root`, `Password: root`)*
+
+---
   
 ## 🧪 Run Application
 
