@@ -4,7 +4,7 @@ RESTful web service built with Spring Boot 3 for hotel catalog management, ameni
 
 ---
 
-## 🛠 Технологический стек
+## 🛠 Tech stack
 
 * **Java 21**
 * **Spring Boot 3** (Spring Web, Spring Data JPA, Spring Validation)
