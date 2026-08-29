@@ -1,6 +1,6 @@
 # Hotel Application RestApi
 
-RESTful веб-сервис на базе **Spring Boot 3** для управления каталогом отелей, редактирования списка удобств (amenities), получения аналитической гистограммы и гибкого поиска по нескольким фильтрам.
+RESTful web service built with Spring Boot 3 for hotel catalog management, amenity list editing, analytical histogram generation, and flexible multi-filter search.
 
 ---
 
@@ -8,10 +8,10 @@ RESTful веб-сервис на базе **Spring Boot 3** для управл�
 
 * **Java 21**
 * **Spring Boot 3** (Spring Web, Spring Data JPA, Spring Validation)
-* **H2**
-* **Liquibase** (управление миграциями базы данных)
-* **JUnit 5 & Mockito** (юнит тестирование)
-* **Apache Maven** (сборка проекта)
+* **H2 Database**
+* **Liquibase** (database migration management)
+* **JUnit 5 & Mockito** (unit testing)
+* **Apache Maven** (project build tool)
 
 ---
 
