@@ -15,15 +15,15 @@ RESTful веб-сервис на базе **Spring Boot 3** для управл�
 
 ---
 
-## 🚀 API Эндпоинты
+## 🚀 API Endpoints
 
-Все эндпоинты сервиса доступны по базовому пути `/property-view`:
+All endpoints are available with base path `/property-view`:
 
-| HTTP Метод | URL Path | Описание | Возвращаемый статус |
+| HTTP Method | URL Path | Description | Returned status |
 | :--- | :--- | :--- | :--- |
-| `GET` | `/property-view/hotels` | Получение списка всех отелей | `200 OK` |
-| `GET` | `/property-view/hotels/{id}` | Получение подробной информации об отеле по ID | `200 OK` / `404 Not Found` |
-| `POST` | `/property-view/hotels` | Создание нового отеля | `201 Created` / `400 Bad Request` |
-| `POST` | `/property-view/hotels/{id}/amenities` | Добавление удобств к существующему отелю | `200 OK` / `404 Not Found` |
-| `GET` | `/property-view/histogram/{param}` | Группировка отелей (`brand`, `city`, `country`, `amenities`) | `200 OK` / `400 Bad Request` |
-| `GET` | `/property-view/search` | Поиск отелей по параметрам | `200 OK` |
+| `GET` | `/property-view/hotels` | Getting all hotels list | `200 OK` |
+| `GET` | `/property-view/hotels/{id}` | Getting detailed info about hotel by ID | `200 OK` / `404 Not Found` |
+| `POST` | `/property-view/hotels` | Creating new hotel | `201 Created` / `500 Internal Server Error` |
+| `POST` | `/property-view/hotels/{id}/amenities` | Adding amenities to the existing hotel | `200 OK` / `404 Not Found` |
+| `GET` | `/property-view/histogram/{param}` | Grouping hotels (`brand`, `city`, `country`, `amenities`) | `200 OK` / `400 Bad Request` |
+| `GET` | `/property-view/search` | Searching hotels by params | `200 OK` |
