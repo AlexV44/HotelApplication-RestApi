@@ -42,3 +42,9 @@ When the application is running (default port: `8092`), the following web interf
   [http://localhost:8092/h2-console](http://localhost:8092/h2-console)  
   *(Connection details: `JDBC URL: jdbc:h2:mem:hoteldb`, `User Name: root`, `Password: root`)*
   
+## 🧪 Run Application
+
+To start the service locally, run the following command from the project root:
+
+```bash
+mvn spring-boot:run
