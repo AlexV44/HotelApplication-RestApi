@@ -18,7 +18,7 @@ public record HotelSearchRequest(
         String country,
         @Parameter(
                 description = "List of amenities",
-                array = @ArraySchema(schema = @Schema(type = "string", example = "Free Wi-Fi"))
+                array = @ArraySchema(schema = @Schema(type = "string"))
         )
         List<String> amenities
 ) {
