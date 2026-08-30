@@ -1,20 +1,19 @@
 package com.vidilin.hotel.service;
 
-import com.vidilin.hotel.Mapper.HotelMapper;
-import com.vidilin.hotel.dto.HotelDetailDto;
-import com.vidilin.hotel.dto.HotelSummaryDto;
-import com.vidilin.hotel.dto.SaveHotelDto;
-import com.vidilin.hotel.entity.Hotel;
+import com.vidilin.hotel.dto.*;
+import com.vidilin.hotel.enums.HotelParams;
 import com.vidilin.hotel.exception.BadRequestException;
+import com.vidilin.hotel.exception.NotFoundException;
+import com.vidilin.hotel.mapper.HotelMapper;
 import com.vidilin.hotel.repository.HotelRepository;
 import com.vidilin.hotel.repository.HotelSpecification;
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.util.Streamable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,76 +27,62 @@ public class HotelServiceImpl implements HotelService {
 
     @Override
     public List<HotelSummaryDto> getAllHotels() {
-        List<Hotel> hotels = new ArrayList<>();
-        Streamable.of(hotelRepository.findAll()).forEach(hotels::add);
-        List<HotelSummaryDto> dtos = new ArrayList<>();
-        for(Hotel hotel : hotels) {
-            dtos.add(HotelMapper.mapToSummaryDto(hotel));
-        }
-        return dtos;
+        return hotelRepository.findAll().stream()
+                .map(HotelMapper::mapToSummaryDto)
+                .toList();
     }
 
     @Override
     public HotelDetailDto getHotelById(Long id) {
-        Optional<Hotel> hotel = hotelRepository.findById(id);
-        return hotel.map(HotelMapper::mapToDetailDto).orElseThrow(() -> new EntityNotFoundException("Hotel not found with id: " + id));
+        return hotelRepository.findById(id).
+                map(HotelMapper::mapToDetailDto).
+                orElseThrow(() -> new NotFoundException("Hotel not found with id: " + id));
     }
 
     @Override
     @Transactional
     public HotelSummaryDto saveHotel(SaveHotelDto dto) {
-        Hotel hotel = HotelMapper.mapToEntity(dto);
-        Hotel savedHotel = hotelRepository.save(hotel);
-        return HotelMapper.mapToSummaryDto(savedHotel);
+        return Optional.of(dto)
+                .map(HotelMapper::mapToEntity)
+                .map(hotelRepository::save)
+                .map(HotelMapper::mapToSummaryDto)
+                .orElseThrow(() -> new BadRequestException("Hotel not saved"));
     }
 
     @Override
     @Transactional
     public void addAmenitiesById(Long id, List<String> amenities) {
-        Hotel hotel = hotelRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Hotel not found with id: " + id));
+        var hotel = hotelRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Hotel not found with id: " + id));
 
         hotel.getAmenities().addAll(amenities);
     }
 
     @Override
-    public Map<String, Long> groupHotelsByParam(String param) {
-        List<Hotel> hotels = hotelRepository.findAll();
-        Map<String, Long> group;
-
-        switch (param.toLowerCase()) {
-            case "brand" -> group = hotels.stream()
-                    .filter(h -> h.getBrand() != null)
-                    .collect(Collectors.groupingBy(Hotel::getBrand, Collectors.counting()));
-            case "city" -> group = hotels.stream()
-                    .filter(h -> h.getAddress() != null && h.getAddress().getCity() != null)
-                    .collect(Collectors.groupingBy(h -> h.getAddress().getCity(), Collectors.counting()));
-            case "country" -> group = hotels.stream()
-                    .filter(h -> h.getAddress() != null && h.getAddress().getCountry() != null)
-                    .collect(Collectors.groupingBy(h -> h.getAddress().getCountry(), Collectors.counting()));
-            case "amenities" -> group = hotels.stream()
-                    .flatMap(h -> h.getAmenities().stream())
-                    .collect(Collectors.groupingBy(a -> a, Collectors.counting()));
-            default -> throw new BadRequestException("Invalid group parameter: " + param);
-        }
-
-        return group;
+    public Map<String, Long> groupHotelsByParam(HotelParams param) {
+        var results = switch (param) {
+            case BRAND -> hotelRepository.countHotelsByBrand();
+            case CITY -> hotelRepository.countHotelsByCity();
+            case COUNTRY -> hotelRepository.countHotelsByCountry();
+            case AMENITIES -> hotelRepository.countHotelsByAmenities();
+        };
+        return results.stream()
+                .collect(Collectors.toMap(GroupCountDto::key, GroupCountDto::count));
     }
 
     @Override
-    public List<HotelSummaryDto> searchHotels(String name, String brand, String city, String country, String amenities) {
-        Specification<Hotel> spec = Specification.where(HotelSpecification.hasName(name))
-                .and(HotelSpecification.hasBrand(brand))
-                .and(HotelSpecification.hasCity(city))
-                .and(HotelSpecification.hasCountry(country))
-                .and(HotelSpecification.hasAmenity(amenities));
-
-        List<Hotel> hotels = new ArrayList<>();
-        Streamable.of(hotelRepository.findAll(spec)).forEach(hotels::add);
-        List<HotelSummaryDto> dtos = new ArrayList<>();
-        for(Hotel hotel : hotels) {
-            dtos.add(HotelMapper.mapToSummaryDto(hotel));
+    public List<HotelSummaryDto> searchHotels(HotelSearchRequest request) {
+        if (request.isEmpty()) {
+            throw new BadRequestException("At least one search parameter must be provided");
         }
-        return dtos;
+        var spec = Specification.where(HotelSpecification.hasName(request.name()))
+                .and(HotelSpecification.hasBrand(request.brand()))
+                .and(HotelSpecification.hasCity(request.city()))
+                .and(HotelSpecification.hasCountry(request.country()))
+                .and(HotelSpecification.hasAmenities(request.amenities()));
+
+        return hotelRepository.findAll(spec).stream()
+                .map(HotelMapper::mapToSummaryDto)
+                .toList();
     }
 }

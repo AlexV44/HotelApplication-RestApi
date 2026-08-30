@@ -1,13 +1,13 @@
 package com.vidilin.hotel;
 
-import com.vidilin.hotel.dto.HotelDetailDto;
-import com.vidilin.hotel.dto.HotelSummaryDto;
-import com.vidilin.hotel.dto.SaveHotelDto;
+import com.vidilin.hotel.dto.*;
 import com.vidilin.hotel.entity.Address;
 import com.vidilin.hotel.entity.Hotel;
+import com.vidilin.hotel.enums.HotelParams;
+import com.vidilin.hotel.exception.BadRequestException;
+import com.vidilin.hotel.exception.NotFoundException;
 import com.vidilin.hotel.repository.HotelRepository;
 import com.vidilin.hotel.service.HotelServiceImpl;
-import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -16,7 +16,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,7 +39,7 @@ class HotelServiceTest {
 
     @BeforeEach
     void setUp() {
-        Address address = new Address();
+        var address = new Address();
         address.setCity("Minsk");
         address.setCountry("Belarus");
 
@@ -56,34 +55,34 @@ class HotelServiceTest {
     void getAllHotels_ShouldReturnDtoList() {
         when(hotelRepository.findAll()).thenReturn(List.of(hotel));
 
-        List<HotelSummaryDto> result = hotelService.getAllHotels();
+        var result = hotelService.getAllHotels();
 
         assertNotNull(result);
         assertEquals(1, result.size());
-        assertEquals("Test Hotel", result.get(0).getName());
+        assertEquals("Test Hotel", result.get(0).name());
         verify(hotelRepository, times(1)).findAll();
     }
 
     @Test
     @DisplayName("getHotelById — returning hotel by id (positive)")
     void getHotelById_WhenHotelExists_ShouldReturnDetailDto() {
-        Long hotelId = 1L;
+        var hotelId = 1L;
         when(hotelRepository.findById(hotelId)).thenReturn(Optional.of(hotel));
 
-        HotelDetailDto result = hotelService.getHotelById(hotelId);
+        var result = hotelService.getHotelById(hotelId);
 
         assertNotNull(result);
-        assertEquals("Hilton", result.getBrand());
+        assertEquals("Hilton", result.brand());
         verify(hotelRepository, times(1)).findById(hotelId);
     }
 
     @Test
-    @DisplayName("getHotelById — returning an EntityNotFoundException (negative)")
+    @DisplayName("getHotelById — returning NotFoundException (negative)")
     void getHotelById_WhenHotelNotFound_ShouldReturnNull() {
-        Long hotelId = 99L;
+        var hotelId = 99L;
         when(hotelRepository.findById(hotelId)).thenReturn(Optional.empty());
 
-        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class,
+        var ex = assertThrows(NotFoundException.class,
                 () -> hotelService.getHotelById(hotelId));
 
         assertEquals("Hotel not found with id: 99", ex.getMessage());
@@ -93,12 +92,12 @@ class HotelServiceTest {
     @Test
     @DisplayName("saveHotel — saving hotel and returning saved hotel")
     void saveHotel_ShouldSaveAndReturnSummaryDto() {
-        SaveHotelDto dto = new SaveHotelDto();
+        var dto = new SaveHotelDto();
         dto.setName("New hotel");
 
         when(hotelRepository.save(any(Hotel.class))).thenReturn(hotel);
 
-        HotelSummaryDto result = hotelService.saveHotel(dto);
+        var result = hotelService.saveHotel(dto);
 
         assertNotNull(result);
         verify(hotelRepository, times(1)).save(any(Hotel.class));
@@ -107,68 +106,186 @@ class HotelServiceTest {
     @Test
     @DisplayName("addAmenitiesById — adding amenities by hotel id (positive)")
     void addAmenitiesById_WhenHotelExists_ShouldAddAmenities() {
-        Long hotelId = 1L;
-        when(hotelRepository.findById(hotelId)).thenReturn(Optional.of(hotel));
+        var hotel = new Hotel();
+        hotel.setId(1L);
+        hotel.setAmenities(new ArrayList<>(List.of("WiFi")));
 
-        List<String> newAmenities = List.of("Parking", "Gym");
-        hotelService.addAmenitiesById(hotelId, newAmenities);
+        when(hotelRepository.findById(1L)).thenReturn(Optional.of(hotel));
+        hotelService.addAmenitiesById(1L, List.of("Pool"));
 
-        assertEquals(4, hotel.getAmenities().size());
-        assertTrue(hotel.getAmenities().contains("Parking"));
-        verify(hotelRepository, times(1)).save(hotel);
+        verify(hotelRepository).findById(1L);
+
+        assertTrue(hotel.getAmenities().containsAll(List.of("WiFi", "Pool")));
     }
 
     @Test
-    @DisplayName("addAmenitiesById — throwing an EntityNotFoundException, if hotel is not found (negative)")
+    @DisplayName("addAmenitiesById — throwing NotFoundException, if hotel is not found (negative)")
     void addAmenitiesById_WhenNotFound_ShouldThrowException() {
-        Long hotelId = 99L;
+        var hotelId = 99L;
         when(hotelRepository.findById(hotelId)).thenReturn(Optional.empty());
 
-        assertThrows(EntityNotFoundException.class,
+        assertThrows(NotFoundException.class,
                 () -> hotelService.addAmenitiesById(hotelId, List.of("Parking")));
 
         verify(hotelRepository, times(1)).findById(hotelId);
     }
 
     @Test
-    @DisplayName("groupHotelsByParam — grouping by brand and returning Map<String, Long> (positive)")
+    @DisplayName("groupHotelsByParam — grouping by brand (positive)")
     void groupHotelsByParam_ByBrand_ShouldReturnGroupedMap() {
-        when(hotelRepository.findAll()).thenReturn(List.of(hotel));
+        var mockData = List.of(new GroupCountDto("Hilton", 1L));
+        when(hotelRepository.countHotelsByBrand()).thenReturn(mockData);
 
-        Map<String, Long> result = hotelService.groupHotelsByParam("brand");
+        Map<String, Long> result = hotelService.groupHotelsByParam(HotelParams.BRAND);
 
         assertNotNull(result);
         assertEquals(1L, result.get("Hilton"));
+        verify(hotelRepository).countHotelsByBrand();
     }
 
     @Test
-    @DisplayName("groupHotelsByParam — grouping by city and returning Map<String, Long> (positive)")
+    @DisplayName("groupHotelsByParam — grouping by city (positive)")
     void groupHotelsByParam_ByCity_ShouldReturnGroupedMap() {
-        when(hotelRepository.findAll()).thenReturn(List.of(hotel));
+        var mockGroupData = List.of(new GroupCountDto("Minsk", 1L));
+        when(hotelRepository.countHotelsByCity()).thenReturn(mockGroupData);
 
-        Map<String, Long> result = hotelService.groupHotelsByParam("city");
+        Map<String, Long> result = hotelService.groupHotelsByParam(HotelParams.CITY);
 
         assertNotNull(result);
         assertEquals(1L, result.get("Minsk"));
+        verify(hotelRepository).countHotelsByCity();
     }
 
     @Test
-    @DisplayName("groupHotelsByParam — throwing a BadRequestException because of invalid parameter")
+    @DisplayName("groupHotelsByParam — grouping by country (positive)")
+    void groupHotelsByParam_ByCountry_ShouldReturnGroupedMap() {
+        var mockData = List.of(new GroupCountDto("Belarus", 1L));
+        when(hotelRepository.countHotelsByCountry()).thenReturn(mockData);
+
+        Map<String, Long> result = hotelService.groupHotelsByParam(HotelParams.COUNTRY);
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals(1L, result.get("Belarus"));
+        verify(hotelRepository, times(1)).countHotelsByCountry();
+    }
+
+    @Test
+    @DisplayName("groupHotelsByParam — grouping by amenities (positive)")
+    void groupHotelsByParam_ByAmenities_ShouldReturnGroupedMap() {
+        var mockData = List.of(
+                new GroupCountDto("Free WiFi", 1L),
+                new GroupCountDto("Pool", 1L)
+        );
+        when(hotelRepository.countHotelsByAmenities()).thenReturn(mockData);
+
+        Map<String, Long> result = hotelService.groupHotelsByParam(HotelParams.AMENITIES);
+
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertEquals(1L, result.get("Free WiFi"));
+        assertEquals(1L, result.get("Pool"));
+        verify(hotelRepository, times(1)).countHotelsByAmenities();
+    }
+
+    @Test
+    @DisplayName("groupHotelsByParam — throwing a BadRequestException because of invalid parameter (negative)")
     void groupHotelsByParam_InvalidParam_ShouldThrowException() {
-        assertThrows(ResponseStatusException.class, () ->
-                hotelService.groupHotelsByParam("invalid_param")
+        assertThrows(BadRequestException.class, () ->
+                hotelService.groupHotelsByParam(HotelParams.fromString("invalid_param"))
         );
     }
 
     @Test
     @DisplayName("searchHotels — searching with specification and returning result")
     void searchHotels_ShouldReturnMatchingHotels() {
+        var searchRequest = new HotelSearchRequest("Test Hotel", "Hilton", "Minsk", "Belarus", List.of("Free WiFi"));
+
         when(hotelRepository.findAll(any(Specification.class))).thenReturn(List.of(hotel));
 
-        List<HotelSummaryDto> result = hotelService.searchHotels("Test", "Hilton", "Minsk", "Belarus", "Free WiFi");
+        var result = hotelService.searchHotels(searchRequest);
 
         assertNotNull(result);
         assertEquals(1, result.size());
         verify(hotelRepository, times(1)).findAll(any(Specification.class));
+    }
+
+    @Test
+    @DisplayName("searchHotels — search by name (positive)")
+    void searchHotels_ByName_ShouldReturnMatchingHotels() {
+        var request = new HotelSearchRequest("Test Hotel", null, null, null, null);
+        when(hotelRepository.findAll(any(Specification.class))).thenReturn(List.of(hotel));
+
+        List<HotelSummaryDto> result = hotelService.searchHotels(request);
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals("Test Hotel", result.get(0).name());
+        verify(hotelRepository, times(1)).findAll(any(Specification.class));
+    }
+
+    @Test
+    @DisplayName("searchHotels — search by brand (positive)")
+    void searchHotels_ByBrand_ShouldReturnMatchingHotels() {
+        var request = new HotelSearchRequest(null, "Hilton", null, null, null);
+        when(hotelRepository.findAll(any(Specification.class))).thenReturn(List.of(hotel));
+
+        List<HotelSummaryDto> result = hotelService.searchHotels(request);
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals("Test Hotel", result.get(0).name());
+        verify(hotelRepository, times(1)).findAll(any(Specification.class));
+    }
+
+    @Test
+    @DisplayName("searchHotels — search by city (positive)")
+    void searchHotels_ByCity_ShouldReturnMatchingHotels() {
+        var request = new HotelSearchRequest(null, null, "Minsk", null, null);
+        when(hotelRepository.findAll(any(Specification.class))).thenReturn(List.of(hotel));
+
+        List<HotelSummaryDto> result = hotelService.searchHotels(request);
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        verify(hotelRepository, times(1)).findAll(any(Specification.class));
+    }
+
+    @Test
+    @DisplayName("searchHotels — search by country (positive)")
+    void searchHotels_ByCountry_ShouldReturnMatchingHotels() {
+        var request = new HotelSearchRequest(null, null, null, "Belarus", null);
+        when(hotelRepository.findAll(any(Specification.class))).thenReturn(List.of(hotel));
+
+        List<HotelSummaryDto> result = hotelService.searchHotels(request);
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        verify(hotelRepository, times(1)).findAll(any(Specification.class));
+    }
+
+    @Test
+    @DisplayName("searchHotels — search by amenities (positive)")
+    void searchHotels_ByAmenities_ShouldReturnMatchingHotels() {
+        var request = new HotelSearchRequest(null, null, null, null, List.of("Pool"));
+        when(hotelRepository.findAll(any(Specification.class))).thenReturn(List.of(hotel));
+
+        List<HotelSummaryDto> result = hotelService.searchHotels(request);
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        verify(hotelRepository, times(1)).findAll(any(Specification.class));
+    }
+
+    @Test
+    @DisplayName("searchHotels — throwing BadRequestException when no search parameters are provided (negative)")
+    void searchHotels_WhenNoParametersProvided_ShouldThrowBadRequestException() {
+        var emptyRequest = new HotelSearchRequest(null, null, null, null, null);
+
+        var exception = assertThrows(BadRequestException.class,
+                () -> hotelService.searchHotels(emptyRequest));
+
+        assertEquals("At least one search parameter must be provided", exception.getMessage());
+        verify(hotelRepository, never()).findAll(any(Specification.class));
     }
 }
